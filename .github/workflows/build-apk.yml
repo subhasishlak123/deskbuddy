@@ -1,26 +1,40 @@
-name: Auto Build Buddy
+name: Build Buddy APK
 on:
   push:
-    branches: [ main, master ] # Trigger on every save to these branches
-  workflow_dispatch:          # Keep manual button as backup
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libltdl-dev
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install Buildozer
-        run: pip install buildozer cython kivy
-      - name: Run Build
+
+      - name: Install Buildozer & Cython
         run: |
-          # This command builds the APK in the cloud
-          buildozer android debug
+          pip install --upgrade pip
+          pip install "cython<3.0.0" buildozer # Cython 0.29.33 is often safer for Kivy
+
+      - name: Run Buildozer
+        run: |
+          # Use 'yes' to automatically accept Android SDK licenses
+          yes | buildozer android debug
+        env:
+          # Force a specific NDK version known to work in 2026
+          ANDROID_NDK_HOME: ${HOME}/.buildozer/android/platform/android-ndk-r25c
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: DeskBuddy-APK
+          name: DeskBuddy-App
           path: bin/*.apk
