@@ -1,32 +1,26 @@
-name: Build Llama APK
+name: Auto Build Buddy
 on:
-  workflow_dispatch: # Allows manual trigger
   push:
-    branches: [ main ] # Auto-builds when you save to main
+    branches: [ main, master ] # Trigger on every save to these branches
+  workflow_dispatch:          # Keep manual button as backup
 
 jobs:
-  android-build:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Clone Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          submodules: recursive # Crucial: downloads the C++ engine core
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Build APK
+          python-version: '3.11'
+      - name: Install Buildozer
+        run: pip install buildozer cython kivy
+      - name: Run Build
         run: |
-          cd examples/llama.android
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
-
-      - name: Upload Result
+          # This command builds the APK in the cloud
+          buildozer android debug
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: llama-android-app
-          path: examples/llama.android/app/build/outputs/apk/debug/*.apk
+          name: DeskBuddy-APK
+          path: bin/*.apk
