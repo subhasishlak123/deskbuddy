@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# This is a simplified wrapper to trigger the system's gradle
+gradle "$@"
