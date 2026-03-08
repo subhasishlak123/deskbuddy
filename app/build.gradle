@@ -1,0 +1,8 @@
+dependencies {
+    // UI Framework
+    implementation("androidx.compose.ui:ui:1.7.0")
+    // Gemini AI SDK
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    // Lifecycle & Coroutines for background "thinking"
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+}
