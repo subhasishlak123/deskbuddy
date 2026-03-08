@@ -1,42 +1,47 @@
-name: Build Buddy APK
+name: Build Anime Buddy APK
+
+# Controls when the workflow will run
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      # 1. Check out the code from your repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Install System Dependencies
-        run: |
-          sudo apt update
-          # Using the most stable generic package names for Ubuntu 24.04
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev cmake libffi-dev libssl-dev libltdl-dev
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # 2. Set up Java 17 (Required for modern Android/Gradle)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          python-version: '3.11'
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
 
-      - name: Install Buildozer & Cython
-        run: |
-          pip install --upgrade pip
-          # --break-system-packages is required for PEP 668 compliance in 2026
-          pip install --break-system-packages "cython<3.0.0" buildozer 
+      # 3. Grant execute permission for the Gradle wrapper
+      # This prevents the "Permission Denied" error
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
 
-      - name: Run Buildozer
-        run: |
-          # Automatically accept SDK licenses to prevent the build from hanging
-          yes | buildozer android debug
-        env:
-          # NDK r25c is the gold standard for stability on this setup
-          ANDROID_NDK_HOME: ${HOME}/.buildozer/android/platform/android-ndk-r25c
+      # 4. Build the Debug APK
+      # This will compile your Kotlin code and generate the .apk file
+      - name: Build with Gradle
+        run: ./gradlew assembleDebug
 
-      - name: Upload APK
+      # 5. Upload the resulting APK as a GitHub Artifact
+      # You can download this from the "Actions" tab once finished
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DeskBuddy-App
-          path: bin/*.apk
+          name: AnimeBuddy-Debug-APK
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 7
