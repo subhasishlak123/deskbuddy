@@ -13,8 +13,8 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt update
-          # Updated for Ubuntu 24.04+ (using libncurses6 and libtinfo6)
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses6-dev libncursesw6-dev libtinfo6 cmake libffi-dev libssl-dev libltdl-dev
+          # Using the most stable generic package names for Ubuntu 24.04
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev cmake libffi-dev libssl-dev libltdl-dev
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,15 +24,15 @@ jobs:
       - name: Install Buildozer & Cython
         run: |
           pip install --upgrade pip
-          # Added flag to bypass 'externally-managed-environment' error on newer Linux
+          # --break-system-packages is required for PEP 668 compliance in 2026
           pip install --break-system-packages "cython<3.0.0" buildozer 
 
       - name: Run Buildozer
         run: |
-          # 'yes' automatically clicks "Accept" on Android SDK licenses
+          # Automatically accept SDK licenses to prevent the build from hanging
           yes | buildozer android debug
         env:
-          # Ensures it uses a stable NDK version for 2026
+          # NDK r25c is the gold standard for stability on this setup
           ANDROID_NDK_HOME: ${HOME}/.buildozer/android/platform/android-ndk-r25c
 
       - name: Upload APK
